@@ -1,8 +1,6 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <!-- Suppress warnings for known vulnerabilities that don't affect our usage -->
-    
   </PropertyGroup>
 
   <ItemGroup>

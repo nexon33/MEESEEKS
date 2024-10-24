@@ -1,0 +1,11 @@
+{
+    "omnisharp.enableRoslynAnalyzers": true,
+    "omnisharp.enableEditorConfigSupport": true,
+    "csharp.semanticHighlighting.enabled": true,
+    "dotnet.server.useOmnisharp": true,
+    "omnisharp.enableDecompilationSupport": true,
+    "omnisharp.organizeImportsOnFormat": true,
+    "omnisharp.enableAsyncCompletion": true,
+    "dotnet.backgroundAnalysis": "true",
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
+}

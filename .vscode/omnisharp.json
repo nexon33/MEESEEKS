@@ -1,0 +1,22 @@
+{
+    "RoslynExtensionsOptions": {
+        "enableAnalyzersSupport": true,
+        "enableDecompilationSupport": true,
+        "enableImportCompletion": true
+    },
+    "FormattingOptions": {
+        "enableEditorConfigSupport": true
+    },
+    "fileOptions": {
+        "systemExcludeSearchPatterns": [
+            "**/node_modules/**/*",
+            "**/bin/**/*",
+            "**/obj/**/*"
+        ]
+    },
+    "msbuild": {
+        "loadProjectsOnDemand": false,
+        "MSBuildSDKsPath": "",
+        "EnablePackageAutoRestore": true
+    }
+}

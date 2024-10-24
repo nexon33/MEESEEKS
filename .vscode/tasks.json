@@ -9,33 +9,85 @@
                 "build",
                 "${workspaceFolder}/MEESEEKS.sln",
                 "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+                "--verbosity",
+                "detailed"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": [
+                "$msCompile",
+                {
+                    "owner": "csharp",
+                    "fileLocation": ["absolute"],
+                    "pattern": [
+                        {
+                            "regexp": "^\\s*(.*)\\((\\d+),(\\d+)\\):\\s+(error|warning|info)\\s+(\\w+):\\s*(.*)$",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3,
+                            "severity": 4,
+                            "code": 5,
+                            "message": 6
+                        }
+                    ]
+                }
+            ],
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
-            "label": "publish",
+            "label": "analyze",
             "command": "dotnet",
             "type": "process",
             "args": [
-                "publish",
+                "build",
                 "${workspaceFolder}/MEESEEKS.sln",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+                "/t:rebuild",
+                "/p:TreatWarningsAsErrors=false",
+                "--no-incremental",
+                "--verbosity",
+                "detailed"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": [
+                "$msCompile",
+                {
+                    "owner": "csharp",
+                    "fileLocation": ["absolute"],
+                    "pattern": [
+                        {
+                            "regexp": "^\\s*(.*)\\((\\d+),(\\d+)\\):\\s+(error|warning|info)\\s+(\\w+):\\s*(.*)$",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3,
+                            "severity": 4,
+                            "code": 5,
+                            "message": 6
+                        }
+                    ]
+                }
+            ],
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            }
         },
         {
-            "label": "watch",
+            "label": "clean",
             "command": "dotnet",
             "type": "process",
             "args": [
-                "watch",
-                "run",
-                "--project",
+                "clean",
                 "${workspaceFolder}/MEESEEKS.sln"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            }
         }
     ]
 }
