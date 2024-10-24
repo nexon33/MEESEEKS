@@ -1,61 +1,48 @@
 using System.Threading.Tasks;
-using MEESEEKS.Models;
+using MEESEEKS.Models.Agent;
+using MEESEEKS.Models.Task;
 
 namespace MEESEEKS.Interfaces
 {
+    /// <summary>
+    /// Represents the core agent interface that defines the fundamental capabilities of a MEESEEKS agent.
+    /// </summary>
     public interface IAgent
     {
+        /// <summary>
+        /// Gets the unique identifier of the agent.
+        /// </summary>
         string Id { get; }
+
+        /// <summary>
+        /// Gets the current status of the agent.
+        /// </summary>
         AgentStatus Status { get; }
+
+        /// <summary>
+        /// Executes a task asynchronously and returns the result.
+        /// </summary>
+        /// <param name="task">The task to be executed by the agent.</param>
+        /// <returns>A task representing the asynchronous operation that returns an AgentResult containing the outcome of the task execution.</returns>
         Task<AgentResult> ExecuteTaskAsync(AgentTask task);
+
+        /// <summary>
+        /// Creates and initializes a new agent instance with the specified configuration.
+        /// </summary>
+        /// <param name="configuration">The configuration settings for the new agent.</param>
+        /// <returns>A task representing the asynchronous operation that returns the newly created IAgent instance.</returns>
         Task<IAgent> SpawnNewAgentAsync(AgentConfiguration configuration);
+
+        /// <summary>
+        /// Initializes the agent's container environment asynchronously.
+        /// </summary>
+        /// <returns>A task representing the asynchronous container initialization operation.</returns>
         Task InitializeContainerAsync();
+
+        /// <summary>
+        /// Performs a graceful shutdown of the agent, cleaning up resources and stopping any ongoing operations.
+        /// </summary>
+        /// <returns>A task representing the asynchronous shutdown operation.</returns>
         Task ShutdownAsync();
-    }
-
-    public interface ICodeAnalyzer
-    {
-        Task<CodeAnalysisResult> AnalyzeCodeAsync(string codeContent);
-        Task<CodeModification> GenerateCodeModificationAsync(CodeAnalysisResult analysis);
-    }
-
-    public interface IGitOperations
-    {
-        Task CloneRepositoryAsync(string repoUrl, string targetPath);
-        Task CommitChangesAsync(string message);
-        Task PushChangesAsync();
-        Task PullLatestAsync();
-    }
-
-    public interface IDockerOperations
-    {
-        Task<string> CreateContainerAsync(AgentConfiguration config);
-        Task StartContainerAsync(string containerId);
-        Task StopContainerAsync(string containerId);
-        Task<bool> IsContainerRunningAsync(string containerId);
-    }
-
-    public interface IAgentCommunication
-    {
-        Task BroadcastMessageAsync(AgentMessage message);
-        Task<AgentMessage> ReceiveMessageAsync();
-        Task RegisterAgentAsync(IAgent agent);
-        Task UnregisterAgentAsync(string agentId);
-    }
-
-    public interface ICodeGenerator
-    {
-        Task<GeneratedCode> GenerateCodeAsync(CodeGenerationRequest request);
-        Task<UnitTestCode> GenerateTestsAsync(GeneratedCode code);
-        Task<InterfaceDefinition> GenerateInterfaceAsync(GeneratedCode code);
-    }
-
-    public interface ISolutionManager
-    {
-        Task LoadSolutionAsync(string solutionPath);
-        Task AddProjectAsync(string projectName, string projectType);
-        Task AddFileToProjectAsync(string projectName, string filePath, string content);
-        Task BuildSolutionAsync();
-        Task RunTestsAsync();
     }
 }

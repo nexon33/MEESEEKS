@@ -1,28 +1,41 @@
+using System;
+using System.Collections.Generic;
+
 namespace MEESEEKS.Models.CodeAnalysis
 {
     /// <summary>
-    /// Represents code metrics collected during analysis.
+    /// Represents a collection of code metrics with additional metadata and analysis information.
     /// </summary>
     public class CodeMetrics
     {
         /// <summary>
-        /// Cyclomatic complexity of the code.
+        /// Gets or sets the collection of individual code metrics
         /// </summary>
-        public int CyclomaticComplexity { get; set; }
+        public List<CodeMetric> Metrics { get; set; } = new List<CodeMetric>();
 
         /// <summary>
-        /// Lines of code (excluding comments and blank lines).
+        /// Gets or sets the timestamp when these metrics were collected
         /// </summary>
-        public int LinesOfCode { get; set; }
+        public DateTime CollectedAt { get; set; } = DateTime.UtcNow;
 
         /// <summary>
-        /// Number of dependencies.
+        /// Gets or sets any additional metadata about the metrics collection
         /// </summary>
-        public int DependencyCount { get; set; }
+        public Dictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
 
         /// <summary>
-        /// Maintainability index (0-100).
+        /// Implicitly converts a List of CodeMetric to CodeMetrics
         /// </summary>
-        public int MaintainabilityIndex { get; set; }
+        /// <param name="metrics">The list of metrics to convert</param>
+        public static implicit operator CodeMetrics(List<CodeMetric> metrics)
+        {
+            return new CodeMetrics { Metrics = metrics };
+        }
+
+        /// <summary>
+        /// Gets the metrics as a readonly list
+        /// </summary>
+        /// <returns>An IReadOnlyList of CodeMetric</returns>
+        public IReadOnlyList<CodeMetric> AsReadOnly() => Metrics.AsReadOnly();
     }
 }

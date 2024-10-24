@@ -11,7 +11,7 @@ namespace MEESEEKS.Models.Documentation
         /// <summary>
         /// Overview of the generated code.
         /// </summary>
-        public string Overview { get; set; }
+        public required string Overview { get; set; }
 
         /// <summary>
         /// Detailed API documentation.
@@ -21,7 +21,7 @@ namespace MEESEEKS.Models.Documentation
         /// <summary>
         /// Setup and installation instructions.
         /// </summary>
-        public string SetupInstructions { get; set; }
+        public required string SetupInstructions { get; set; }
 
         /// <summary>
         /// Usage examples with explanations.
@@ -31,7 +31,7 @@ namespace MEESEEKS.Models.Documentation
         /// <summary>
         /// Architecture and design decisions.
         /// </summary>
-        public string ArchitectureOverview { get; set; }
+        public required string ArchitectureOverview { get; set; }
 
         /// <summary>
         /// Dependencies and their versions.

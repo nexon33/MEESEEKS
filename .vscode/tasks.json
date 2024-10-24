@@ -47,7 +47,7 @@
                 "build",
                 "${workspaceFolder}/MEESEEKS.sln",
                 "/t:rebuild",
-                "/p:TreatWarningsAsErrors=false",
+                //"/p:TreatWarningsAsErrors=true",
                 "--no-incremental",
                 "--verbosity",
                 "detailed"

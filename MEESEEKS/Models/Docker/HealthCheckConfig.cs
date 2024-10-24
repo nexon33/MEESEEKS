@@ -14,14 +14,14 @@ namespace MEESEEKS.Models.Docker
         public List<string> Test { get; set; } = new List<string>();
 
         /// <summary>
-        /// Time between health checks in seconds.
+        /// Time between health checks.
         /// </summary>
-        public int Interval { get; set; }
+        public TimeSpan Interval { get; set; }
 
         /// <summary>
-        /// Time to wait for a health check to complete in seconds.
+        /// Time to wait for a health check to complete.
         /// </summary>
-        public int Timeout { get; set; }
+        public TimeSpan Timeout { get; set; }
 
         /// <summary>
         /// Number of consecutive failures needed to consider unhealthy.
@@ -29,9 +29,9 @@ namespace MEESEEKS.Models.Docker
         public int Retries { get; set; }
 
         /// <summary>
-        /// Time to wait before first health check in seconds.
+        /// Time to wait before first health check.
         /// </summary>
-        public int StartPeriod { get; set; }
+        public TimeSpan StartPeriod { get; set; }
 
         /// <summary>
         /// Whether to disable the health check.

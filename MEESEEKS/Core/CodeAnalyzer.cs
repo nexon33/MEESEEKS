@@ -4,74 +4,58 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MEESEEKS.Core.Analysis;
 using MEESEEKS.Interfaces;
-using MEESEEKS.Models;
+using MEESEEKS.Models.CodeAnalysis;
 
 namespace MEESEEKS.Core
 {
+    /// <summary>
+    /// Provides functionality for analyzing C# code using the Roslyn compiler platform.
+    /// </summary>
     public class CodeAnalyzer : ICodeAnalyzer
     {
+        private readonly CodeComplexityAnalyzer _complexityAnalyzer = new();
+        private readonly CodeDefinitionAnalyzer _definitionAnalyzer = new();
+        private readonly CodeLocationMapper _locationMapper = new();
+
+        /// <summary>
+        /// Analyzes the provided code content asynchronously.
+        /// </summary>
+        /// <param name="codeContent">The source code content to analyze.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="ArgumentException">Thrown when code content is null or empty.</exception>
         public async Task<CodeAnalysisResult> AnalyzeCodeAsync(string codeContent)
         {
             if (string.IsNullOrEmpty(codeContent))
                 throw new ArgumentException("Code content cannot be null or empty", nameof(codeContent));
 
-            // Directly call the async method without Task.Run
-            return await AnalyzeCodeInternalAsync(codeContent);
-        }
-
-        private async Task<CodeAnalysisResult> AnalyzeCodeInternalAsync(string codeContent)
-        {
             var tree = CSharpSyntaxTree.ParseText(codeContent);
             var root = await tree.GetRootAsync();
             var compilation = CSharpCompilation.Create("Analysis")
                 .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
                 .AddSyntaxTrees(tree);
 
-            var model = compilation.GetSemanticModel(tree);
-            var issues = new List<CodeIssue>();
-            var metrics = new List<CodeMetric>();
-
-            // Analyze code complexity
-            var methodComplexity = await Task.Run(() => AnalyzeMethodComplexity(root));
-            metrics.AddRange(methodComplexity);
-
-            // Analyze code issues
-            var diagnostics = compilation.GetDiagnostics();
-            issues.AddRange(diagnostics.Select(d => new CodeIssue
-            {
-                Id = d.Id,
-                Description = d.GetMessage(),
-                Severity = MapSeverity(d.Severity),
-                Location = MapLocation(d.Location) ?? new CodeLocation
-                {
-                    FilePath = string.Empty,
-                    StartLine = 0,
-                    EndLine = 0,
-                    StartColumn = 0,
-                    EndColumn = 0
-                },
-                SuggestedFix = string.Empty
-            }));
-
-            // Collect context information
-            var context = new Dictionary<string, object>
-            {
-                { "Classes", await Task.Run(() => GetClassDefinitions(root).ToList()) },
-                { "Methods", await Task.Run(() => GetMethodDefinitions(root).ToList()) },
-                { "Usings", await Task.Run(() => GetUsingDirectives(root).ToList()) }
-            };
+            var metrics = await Task.Run(() => _complexityAnalyzer.AnalyzeMethodComplexity(root));
+            var issues = GetIssues(compilation);
+            var context = await CollectContext(root);
 
             return new CodeAnalysisResult
             {
                 FilePath = tree.FilePath ?? string.Empty,
                 Issues = issues,
-                Metrics = metrics,
-                Context = context
+                Metrics = new CodeMetrics { Metrics = metrics.ToList() },
+                Context = context,
+                AnalyzedAt = DateTime.UtcNow
             };
         }
 
+        /// <summary>
+        /// Generates code modifications based on the analysis results.
+        /// </summary>
+        /// <param name="analysis">The code analysis result containing the findings.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when analysis is null.</exception>
         public async Task<CodeModification> GenerateCodeModificationAsync(CodeAnalysisResult analysis)
         {
             if (analysis == null)
@@ -82,113 +66,39 @@ namespace MEESEEKS.Core
                 FilePath = analysis.FilePath,
                 OriginalContent = string.Empty,
                 ModifiedContent = string.Empty,
-                Changes = new List<CodeChange>()
+                Changes = new List<CodeChange>(),
+                ModifiedAt = DateTime.UtcNow
             });
         }
 
-        private IEnumerable<CodeMetric> AnalyzeMethodComplexity(SyntaxNode root)
+        private List<CodeIssue> GetIssues(CSharpCompilation compilation)
         {
-            if (root == null)
-                throw new ArgumentNullException(nameof(root));
-
-            var metrics = new List<CodeMetric>();
-            var methods = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
-
-            foreach (var method in methods)
+            var diagnostics = compilation.GetDiagnostics();
+            return diagnostics.Select(d => new CodeIssue
             {
-                var complexity = CalculateCyclomaticComplexity(method);
-                metrics.Add(new CodeMetric
-                {
-                    Name = $"Cyclomatic Complexity - {method.Identifier.Text}",
-                    Value = complexity,
-                    Unit = "paths"
-                });
-            }
-
-            return metrics;
+                Id = d.Id,
+                Description = d.GetMessage(),
+                Severity = _locationMapper.MapSeverity(d.Severity),
+                Location = _locationMapper.MapLocation(d.Location) ?? new CodeLocation(),
+                SuggestedFix = string.Empty
+            }).ToList();
         }
 
-        private int CalculateCyclomaticComplexity(MethodDeclarationSyntax method)
+        private async Task<CodeContext> CollectContext(SyntaxNode root)
         {
-            if (method == null)
-                throw new ArgumentNullException(nameof(method));
+            var context = new CodeContext();
 
-            var complexity = 1; // Base complexity
+            var classesTask = Task.Run(() => _definitionAnalyzer.GetClassDefinitions(root).ToList());
+            var methodsTask = Task.Run(() => _definitionAnalyzer.GetMethodDefinitions(root).ToList());
+            var usingsTask = Task.Run(() => _definitionAnalyzer.GetUsingDirectives(root).ToList());
 
-            complexity += method.DescendantNodes().Count(n =>
-                n is IfStatementSyntax ||
-                n is WhileStatementSyntax ||
-                n is ForStatementSyntax ||
-                n is ForEachStatementSyntax ||
-                n is CaseSwitchLabelSyntax ||
-                n is CatchClauseSyntax ||
-                n is ConditionalExpressionSyntax ||
-                n is BinaryExpressionSyntax bex &&
-                (bex.OperatorToken.ValueText == "&&" ||
-                 bex.OperatorToken.ValueText == "||"));
+            await Task.WhenAll(classesTask, methodsTask, usingsTask);
 
-            return complexity;
-        }
+            context.Add("Classes", classesTask.Result);
+            context.Add("Methods", methodsTask.Result);
+            context.Add("Usings", usingsTask.Result);
 
-        private IssueSeverity MapSeverity(DiagnosticSeverity severity)
-        {
-            return severity switch
-            {
-                DiagnosticSeverity.Error => IssueSeverity.Error,
-                DiagnosticSeverity.Warning => IssueSeverity.Warning,
-                DiagnosticSeverity.Info => IssueSeverity.Info,
-                DiagnosticSeverity.Hidden => IssueSeverity.Info,
-                _ => IssueSeverity.Info
-            };
-        }
-
-        private CodeLocation? MapLocation(Location? location)
-        {
-            if (location == null)
-                return null;
-
-            var span = location.GetLineSpan();
-            return new CodeLocation
-            {
-                FilePath = span.Path ?? string.Empty,
-                StartLine = span.StartLinePosition.Line + 1,
-                EndLine = span.EndLinePosition.Line + 1,
-                StartColumn = span.StartLinePosition.Character + 1,
-                EndColumn = span.EndLinePosition.Character + 1
-            };
-        }
-
-        private IEnumerable<string> GetClassDefinitions(SyntaxNode root)
-        {
-            if (root == null)
-                throw new ArgumentNullException(nameof(root));
-
-            return root.DescendantNodes()
-                .OfType<ClassDeclarationSyntax>()
-                .Select(c => c.Identifier.Text)
-                .Where(name => !string.IsNullOrEmpty(name));
-        }
-
-        private IEnumerable<string> GetMethodDefinitions(SyntaxNode root)
-        {
-            if (root == null)
-                throw new ArgumentNullException(nameof(root));
-
-            return root.DescendantNodes()
-                .OfType<MethodDeclarationSyntax>()
-                .Select(m => m.Identifier.Text)
-                .Where(name => !string.IsNullOrEmpty(name));
-        }
-
-        private IEnumerable<string> GetUsingDirectives(SyntaxNode root)
-        {
-            if (root == null)
-                throw new ArgumentNullException(nameof(root));
-
-            return root.DescendantNodes()
-                .OfType<UsingDirectiveSyntax>()
-                .Select(u => u.Name?.ToString() ?? string.Empty)
-                .Where(name => !string.IsNullOrEmpty(name));
+            return context;
         }
     }
 }

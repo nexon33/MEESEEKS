@@ -18,5 +18,10 @@
         "loadProjectsOnDemand": false,
         "MSBuildSDKsPath": "",
         "EnablePackageAutoRestore": true
-    }
+    },
+    "omnisharp.enableDecompilationSupport": true,
+    "omnisharp.enableEditorConfigSupport": true,
+    "omnisharp.loggingLevel": "information",
+    "omnisharp.enableLspDriver": false,
+    "omnisharp.projectFilesExcludePattern": "**/bin/**"
 }

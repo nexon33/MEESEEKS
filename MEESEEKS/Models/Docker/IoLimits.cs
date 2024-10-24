@@ -11,6 +11,16 @@ namespace MEESEEKS.Models.Docker
         public int Weight { get; set; }
 
         /// <summary>
+        /// Maximum read operations per second.
+        /// </summary>
+        public long ReadBytesPerSecond { get; set; }
+
+        /// <summary>
+        /// Maximum write operations per second.
+        /// </summary>
+        public long WriteBytesPerSecond { get; set; }
+
+        /// <summary>
         /// Maximum I/O operations per second.
         /// </summary>
         public int MaxIops { get; set; }

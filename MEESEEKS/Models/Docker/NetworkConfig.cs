@@ -10,7 +10,12 @@ namespace MEESEEKS.Models.Docker
         /// <summary>
         /// Name of the Docker network to connect to.
         /// </summary>
-        public string NetworkName { get; set; }
+        public string NetworkName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Whether networking is enabled for the container.
+        /// </summary>
+        public bool EnableNetworking { get; set; }
 
         /// <summary>
         /// Network aliases for the container.
@@ -25,6 +30,6 @@ namespace MEESEEKS.Models.Docker
         /// <summary>
         /// DNS settings for the container.
         /// </summary>
-        public DnsConfig DnsConfig { get; set; }
+        public DnsConfig? DnsConfig { get; set; }
     }
 }

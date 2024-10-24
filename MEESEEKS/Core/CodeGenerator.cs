@@ -6,269 +6,120 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MEESEEKS.Interfaces;
-using MEESEEKS.Models;
+using MEESEEKS.Models.CodeGeneration;
+using MEESEEKS.Models.Documentation;
 
 namespace MEESEEKS.Core
 {
-    public class CodeGenerator : ICodeGenerator
+    /// <summary>
+    /// Provides functionality for generating C# code using the Roslyn compiler platform.
+    /// This class supports generating modular and extensible code with interfaces, implementations,
+    /// and unit tests, while maintaining clean architecture principles.
+    /// </summary>
+    public partial class CodeGenerator : ICodeGenerator
     {
+        private const string Version = "1.0.0";
+
+        /// <summary>
+        /// Generates code based on the provided request, including interfaces, implementations,
+        /// and unit tests if specified.
+        /// </summary>
+        /// <param name="request">The code generation request containing specifications.</param>
+        /// <returns>A task that represents the asynchronous operation, containing the generated code.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when request is null.</exception>
         public async Task<GeneratedCode> GenerateCodeAsync(CodeGenerationRequest request)
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
-            if (string.IsNullOrEmpty(request.ClassName)) throw new ArgumentException("ClassName is required", nameof(request));
-            if (string.IsNullOrEmpty(request.Namespace)) throw new ArgumentException("Namespace is required", nameof(request));
 
-            var classDeclaration = await Task.Run(() =>
+            var result = new GeneratedCode
             {
-                var declaration = SyntaxFactory.ClassDeclaration(request.ClassName)
-                    .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
-
-                if (request.Interfaces?.Any() == true)
-                {
-                    declaration = declaration.AddBaseListTypes(
-                        request.Interfaces.Select(i =>
-                            SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName(i))).ToArray());
-                }
-
-                var members = GenerateMembers(request);
-                return declaration.AddMembers(members.ToArray());
-            });
-
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(
-                SyntaxFactory.ParseName(request.Namespace))
-                .AddMembers(classDeclaration);
-
-            var usings = GenerateUsingDirectives(request.Dependencies ?? new List<string>());
-            var compilationUnit = SyntaxFactory.CompilationUnit()
-                .AddUsings(usings.ToArray())
-                .AddMembers(namespaceDeclaration);
-
-            var code = await Task.Run(() => 
-                compilationUnit.NormalizeWhitespace().ToFullString());
-
-            return new GeneratedCode
-            {
-                ClassName = request.ClassName,
-                Namespace = request.Namespace,
-                Code = code,
-                Dependencies = request.Dependencies ?? new List<string>(),
-                Interfaces = request.Interfaces ?? new List<string>()
+                GeneratorVersion = Version,
+                GeneratedAt = DateTime.UtcNow
             };
+
+            // Generate interface if requested
+            if (request.GenerateInterfaces)
+            {
+                var interfaceFile = await GenerateInterfaceFileAsync(request);
+                result.InterfaceFiles.Add(interfaceFile);
+            }
+
+            // Generate implementation
+            var implementationFile = await GenerateImplementationFileAsync(request);
+            result.SourceFiles.Add(implementationFile);
+
+            // Generate tests if requested
+            if (request.GenerateTests)
+            {
+                var testFile = await GenerateTestFileAsync(request, implementationFile);
+                result.TestFiles.Add(testFile);
+            }
+
+            // Generate documentation if requested
+            if (request.GenerateDocumentation)
+            {
+                result.Documentation = await GenerateDocumentationAsync(request, result);
+            }
+
+            return result;
         }
 
+        /// <summary>
+        /// Generates unit tests for the specified code.
+        /// </summary>
+        /// <param name="code">The generated code for which to create tests.</param>
+        /// <returns>A task that represents the asynchronous operation, containing the generated test code.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when code is null.</exception>
         public async Task<UnitTestCode> GenerateTestsAsync(GeneratedCode code)
         {
             if (code == null) throw new ArgumentNullException(nameof(code));
-            if (string.IsNullOrEmpty(code.Code)) throw new ArgumentException("Code is required", nameof(code));
 
-            var className = $"{code.ClassName}Tests";
-            var testMethods = new List<MethodDeclarationSyntax>();
+            var sourceFile = code.SourceFiles.FirstOrDefault() 
+                ?? throw new ArgumentException("No source files found in generated code", nameof(code));
 
-            var testClass = await Task.Run(() =>
-            {
-                var declaration = SyntaxFactory.ClassDeclaration(className)
-                    .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+            var className = sourceFile.DefinedClasses.FirstOrDefault()
+                ?? throw new ArgumentException("No classes found in source file", nameof(code));
 
-                testMethods.AddRange(GenerateTestMethods(code));
-                return declaration.AddMembers(testMethods.ToArray());
-            });
+            var testClassName = $"{className}Tests";
+            var testNamespace = $"{sourceFile.Namespace}.Tests";
 
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(
-                SyntaxFactory.ParseName($"{code.Namespace}.Tests"))
-                .AddMembers(testClass);
-
-            var usings = GenerateTestUsingDirectives(code);
-            var compilationUnit = SyntaxFactory.CompilationUnit()
-                .AddUsings(usings.ToArray())
-                .AddMembers(namespaceDeclaration);
-
-            var testCode = await Task.Run(() => 
-                compilationUnit.NormalizeWhitespace().ToFullString());
+            var testMethods = await GenerateTestMethodsAsync(sourceFile);
+            var setupCode = await GenerateTestSetupAsync(sourceFile);
+            var testSourceCode = await GenerateTestSourceCodeAsync(testClassName, testNamespace, testMethods, setupCode);
 
             return new UnitTestCode
             {
-                TestClassName = className,
-                TestCode = testCode,
-                TestCases = testMethods.Select(m => m.Identifier.Text).ToList()
+                SourceCode = testSourceCode,
+                TestClassName = testClassName,
+                Namespace = testNamespace,
+                TestMethods = testMethods.Select(m => m.Identifier.Text).ToList(),
+                SetupCode = setupCode?.ToString(),
+                TestDependencies = new List<DependencyInfo>
+                {
+                    new DependencyInfo { Name = "xunit", Version = "2.4.1" },
+                    new DependencyInfo { Name = "xunit.runner.visualstudio", Version = "2.4.3" }
+                }
             };
         }
 
+        /// <summary>
+        /// Extracts interface definitions from the generated code.
+        /// </summary>
+        /// <param name="code">The generated code from which to extract interfaces.</param>
+        /// <returns>A task that represents the asynchronous operation, containing the interface definition.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when code is null.</exception>
         public async Task<InterfaceDefinition> GenerateInterfaceAsync(GeneratedCode code)
         {
             if (code == null) throw new ArgumentNullException(nameof(code));
-            if (string.IsNullOrEmpty(code.Code)) throw new ArgumentException("Code is required", nameof(code));
 
-            var tree = CSharpSyntaxTree.ParseText(code.Code);
+            var sourceFile = code.SourceFiles.FirstOrDefault() 
+                ?? throw new ArgumentException("No source files found in generated code", nameof(code));
+
+            var tree = CSharpSyntaxTree.ParseText(sourceFile.Content);
             var root = await tree.GetRootAsync();
             var classDeclaration = root.DescendantNodes()
                 .OfType<ClassDeclarationSyntax>()
-                .FirstOrDefault() ?? throw new InvalidOperationException("No class declaration found in the code");
+                .FirstOrDefault()
+                ?? throw new InvalidOperationException("No class declaration found in the code");
 
-            var methods = ExtractMethodDefinitions(classDeclaration);
-            var properties = ExtractPropertyDefinitions(classDeclaration);
-
-            return new InterfaceDefinition
-            {
-                InterfaceName = $"I{code.ClassName}",
-                Namespace = code.Namespace,
-                Methods = methods ?? new List<MethodDefinition>(),
-                Properties = properties ?? new List<PropertyDefinition>()
-            };
-        }
-
-        private IEnumerable<MemberDeclarationSyntax> GenerateMembers(CodeGenerationRequest request)
-        {
-            var members = new List<MemberDeclarationSyntax>();
-
-            if (request.Methods != null)
-            {
-                foreach (var method in request.Methods)
-                {
-                    members.Add(GenerateMethodDeclaration(method));
-                }
-            }
-
-            return members;
-        }
-
-        private MethodDeclarationSyntax GenerateMethodDeclaration(MethodDefinition method)
-        {
-            if (method == null) throw new ArgumentNullException(nameof(method));
-            if (string.IsNullOrEmpty(method.Name)) throw new ArgumentException("Method name is required", nameof(method));
-            if (string.IsNullOrEmpty(method.ReturnType)) throw new ArgumentException("Return type is required", nameof(method));
-
-            var parameters = method.Parameters?.Select(p =>
-                SyntaxFactory.Parameter(
-                    SyntaxFactory.Identifier(p.Name))
-                .WithType(SyntaxFactory.ParseTypeName(p.Type))) ?? Array.Empty<ParameterSyntax>();
-
-            var returnType = SyntaxFactory.ParseTypeName(method.ReturnType);
-
-            var methodDeclaration = SyntaxFactory.MethodDeclaration(returnType, method.Name)
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                .AddParameterListParameters(parameters.ToArray())
-                .WithBody(SyntaxFactory.Block());
-
-            if (method.Attributes?.Any() == true)
-            {
-                methodDeclaration = methodDeclaration.AddAttributeLists(
-                    method.Attributes.Select(attr =>
-                        SyntaxFactory.AttributeList(
-                            SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.Attribute(
-                                    SyntaxFactory.IdentifierName(attr)))))
-                    .ToArray());
-            }
-
-            return methodDeclaration;
-        }
-
-        private IEnumerable<MethodDeclarationSyntax> GenerateTestMethods(GeneratedCode code)
-        {
-            var methods = new List<MethodDeclarationSyntax>();
-            var tree = CSharpSyntaxTree.ParseText(code.Code);
-            var root = tree.GetRoot();
-            var classDeclaration = root.DescendantNodes()
-                .OfType<ClassDeclarationSyntax>()
-                .FirstOrDefault();
-
-            if (classDeclaration != null)
-            {
-                foreach (var method in classDeclaration.DescendantNodes().OfType<MethodDeclarationSyntax>())
-                {
-                    methods.Add(GenerateTestMethod(method));
-                }
-            }
-
-            return methods;
-        }
-
-        private MethodDeclarationSyntax GenerateTestMethod(MethodDeclarationSyntax originalMethod)
-        {
-            var testMethodName = $"Test_{originalMethod.Identifier.Text}";
-            
-            return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.PredefinedType(
-                    SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                testMethodName)
-                .AddAttributeLists(
-                    SyntaxFactory.AttributeList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Attribute(
-                                SyntaxFactory.IdentifierName("Fact")))))
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                .WithBody(SyntaxFactory.Block());
-        }
-
-        private IEnumerable<UsingDirectiveSyntax> GenerateUsingDirectives(List<string> dependencies)
-        {
-            var baseUsings = new[]
-            {
-                "System",
-                "System.Collections.Generic",
-                "System.Threading.Tasks"
-            };
-
-            return baseUsings.Concat(dependencies)
-                .Select(d => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(d)));
-        }
-
-        private IEnumerable<UsingDirectiveSyntax> GenerateTestUsingDirectives(GeneratedCode code)
-        {
-            var testUsings = new[]
-            {
-                "System",
-                "System.Threading.Tasks",
-                "Xunit",
-                code.Namespace,
-                "System.Collections.Generic"
-            };
-
-            return testUsings.Concat(code.Dependencies ?? Enumerable.Empty<string>())
-                .Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u)));
-        }
-
-        private List<MethodDefinition> ExtractMethodDefinitions(ClassDeclarationSyntax classDeclaration)
-        {
-            if (classDeclaration == null) throw new ArgumentNullException(nameof(classDeclaration));
-
-            return classDeclaration.DescendantNodes()
-                .OfType<MethodDeclarationSyntax>()
-                .Select(static m => new MethodDefinition
-                {
-                    Name = m.Identifier.Text,
-                    ReturnType = m.ReturnType.ToString(),
-                    Parameters = m.ParameterList.Parameters.Select(static p => new ParameterDefinition
-                    {
-                        Name = p.Identifier.Text,
-                        Type = p.Type?.ToString() ?? "object",
-                        IsOptional = p.Default != null,
-                        DefaultValue = p.Default?.Value?.ToString() ?? string.Empty
-                    }).ToList() ?? new List<ParameterDefinition>(),
-                    Attributes = m.AttributeLists
-                        .SelectMany(al => al.Attributes)
-                        .Select(a => a.Name.ToString())
-                        .ToList() ?? new List<string>()
-                }).ToList();
-        }
-
-        private List<PropertyDefinition> ExtractPropertyDefinitions(ClassDeclarationSyntax classDeclaration)
-        {
-            if (classDeclaration == null) throw new ArgumentNullException(nameof(classDeclaration));
-
-            return classDeclaration.DescendantNodes()
-                .OfType<PropertyDeclarationSyntax>()
-                .Select(p => new PropertyDefinition
-                {
-                    Name = p.Identifier.Text,
-                    Type = p.Type.ToString(),
-                    HasGetter = p.AccessorList?.Accessors.Any(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)) ?? false,
-                    HasSetter = p.AccessorList?.Accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)) ?? false,
-                    Attributes = p.AttributeLists
-                        .SelectMany(al => al.Attributes)
-                        .Select(a => a.Name.ToString())
-                        .ToList() ?? new List<string>()
-                }).ToList();
-        }
-    }
-}
+            var interfaceName = $"I{sourceFile.DefinedClasses[

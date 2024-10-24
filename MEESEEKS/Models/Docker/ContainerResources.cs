@@ -11,9 +11,9 @@ namespace MEESEEKS.Models.Docker
         public double CpuLimit { get; set; }
 
         /// <summary>
-        /// Memory limit in megabytes.
+        /// Memory limit with unit (e.g., "2g" for 2 gigabytes).
         /// </summary>
-        public int MemoryLimitMB { get; set; }
+        public string MemoryLimit { get; set; } = string.Empty;
 
         /// <summary>
         /// CPU reservation (minimum guaranteed CPU).
@@ -21,9 +21,9 @@ namespace MEESEEKS.Models.Docker
         public double CpuReservation { get; set; }
 
         /// <summary>
-        /// Memory reservation in megabytes.
+        /// Memory reservation with unit (e.g., "1g" for 1 gigabyte).
         /// </summary>
-        public int MemoryReservationMB { get; set; }
+        public string MemoryReservation { get; set; } = string.Empty;
 
         /// <summary>
         /// Maximum number of PIDs allowed in the container.
@@ -33,6 +33,6 @@ namespace MEESEEKS.Models.Docker
         /// <summary>
         /// IO limits for the container.
         /// </summary>
-        public IoLimits IoLimits { get; set; }
+        public IoLimits? IoLimits { get; set; }
     }
 }
