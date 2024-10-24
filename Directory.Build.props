@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Suppress warnings for known vulnerabilities that don't affect our usage -->
+    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Lock all package versions -->
+    <PackageReference Include="System.Formats.Asn1" Version="8.0.1" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
