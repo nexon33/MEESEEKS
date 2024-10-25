@@ -28,4 +28,94 @@ namespace MEESEEKS.Core
                     { 
                         DnsConfig = new DnsConfig
                         {
-                            Nameservers = new List<string> { "8.8
+                            Nameservers = new List<string> { "8.8.8.8", "8.8.4.4" }
+                        }
+                    },
+                    Resources = new ContainerResources
+                    {
+                        CpuLimit = 2.0,
+                        MemoryLimit = "2g",
+                        IoLimits = new IoLimits
+                        {
+                            ReadBytesPerSecond = 100_000_000,
+                            WriteBytesPerSecond = 100_000_000,
+                            MaxBandwidth = 200_000_000
+                        }
+                    },
+                    RestartPolicy = new RestartPolicy
+                    {
+                        Type = "on-failure",
+                        MaximumRetryCount = 3
+                    },
+                    HealthCheck = new HealthCheckConfig
+                    {
+                        Test = new List<string> { "CMD", "dotnet", "--info" },
+                        Interval = TimeSpan.FromSeconds(30),
+                        Timeout = TimeSpan.FromSeconds(10),
+                        Retries = 3,
+                        StartPeriod = TimeSpan.FromSeconds(5)
+                    }
+                };
+
+                _containerId = await _dockerOps.CreateContainerAsync(_config);
+                if (string.IsNullOrEmpty(_containerId))
+                {
+                    throw new InvalidOperationException("Failed to create container");
+                }
+
+                await _dockerOps.StartContainerAsync(_containerId);
+                Status = AgentStatus.Ready;
+            }
+            catch (Exception ex)
+            {
+                Status = AgentStatus.Error;
+                throw new InvalidOperationException($"Failed to initialize container: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Performs a graceful shutdown of the agent, cleaning up resources and stopping the container.
+        /// </summary>
+        /// <returns>A task representing the asynchronous shutdown operation.</returns>
+        public async Task ShutdownAsync()
+        {
+            if (_containerId != null)
+            {
+                try
+                {
+                    var isRunning = await _dockerOps.IsContainerRunningAsync(_containerId);
+                    if (isRunning)
+                    {
+                        await _dockerOps.StopContainerAsync(_containerId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't rethrow as we're shutting down
+                    Console.WriteLine($"Error during container shutdown: {ex.Message}");
+                }
+                finally
+                {
+                    Status = AgentStatus.Completed;
+                    _containerId = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Disposes of the agent's resources.
+        /// </summary>
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                if (_containerId != null)
+                {
+                    // Ensure container is stopped during disposal
+                    ShutdownAsync().GetAwaiter().GetResult();
+                }
+                _disposed = true;
+            }
+        }
+    }
+}
