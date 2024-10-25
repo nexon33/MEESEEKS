@@ -57,13 +57,13 @@ namespace MEESEEKS.Core
                     }
                 };
 
-                _containerId = await _dockerOps.CreateContainerAsync(_config);
+                _containerId = await _dockerOperations.CreateContainerAsync(_config);
                 if (string.IsNullOrEmpty(_containerId))
                 {
                     throw new InvalidOperationException("Failed to create container");
                 }
 
-                await _dockerOps.StartContainerAsync(_containerId);
+                await _dockerOperations.StartContainerAsync(_containerId);
                 Status = AgentStatus.Ready;
             }
             catch (Exception ex)
@@ -83,10 +83,10 @@ namespace MEESEEKS.Core
             {
                 try
                 {
-                    var isRunning = await _dockerOps.IsContainerRunningAsync(_containerId);
+                    var isRunning = await _dockerOperations.IsContainerRunningAsync(_containerId);
                     if (isRunning)
                     {
-                        await _dockerOps.StopContainerAsync(_containerId);
+                        await _dockerOperations.StopContainerAsync(_containerId);
                     }
                 }
                 catch (Exception ex)
@@ -116,6 +116,7 @@ namespace MEESEEKS.Core
                 }
                 _disposed = true;
             }
+            GC.SuppressFinalize(this);
         }
     }
 }

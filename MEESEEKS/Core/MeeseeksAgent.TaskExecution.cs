@@ -1,10 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using System.IO;
 using MEESEEKS.Models.Task;
 using MEESEEKS.Models.Agent;
-using MEESEEKS.Models.CodeGeneration;
-using MEESEEKS.Models.CodeAnalysis;
 
 namespace MEESEEKS.Core
 {
@@ -44,6 +41,12 @@ namespace MEESEEKS.Core
             }
         }
 
+        /// <summary>
+        /// Routes the task to the appropriate processing method based on its type.
+        /// </summary>
+        /// <param name="task">The task to process.</param>
+        /// <returns>The result of the task processing.</returns>
+        /// <exception cref="NotSupportedException">Thrown when task type is not supported.</exception>
         private async Task<AgentResult> ProcessTaskAsync(AgentTask task)
         {
             return task.TaskType switch
@@ -55,89 +58,5 @@ namespace MEESEEKS.Core
                 _ => throw new NotSupportedException($"Task type {task.TaskType} is not supported")
             };
         }
-
-        private async Task<AgentResult> ProcessCodeAnalysisTaskAsync(AgentTask task)
-        {
-            var solutionPath = task.Parameters.GetValueOrDefault("solutionPath")?.ToString()
-                ?? throw new ArgumentException("solutionPath parameter is required");
-
-            if (!File.Exists(solutionPath))
-            {
-                throw new FileNotFoundException("Solution file not found", solutionPath);
-            }
-            
-            var codeContent = await File.ReadAllTextAsync(solutionPath);
-            var analysisResult = await _codeAnalyzer.AnalyzeCodeAsync(codeContent);
-            
-            return new AgentResult
-            {
-                Success = true,
-                Message = "Code analysis completed successfully",
-                Results = { ["Analysis"] = analysisResult }
-            };
-        }
-
-        private async Task<AgentResult> ProcessCodeGenerationTaskAsync(AgentTask task)
-        {
-            var description = task.Parameters.GetValueOrDefault("description")?.ToString() ?? "Generated code";
-            var language = task.Parameters.GetValueOrDefault("language")?.ToString() ?? "csharp";
-            var framework = task.Parameters.GetValueOrDefault("framework")?.ToString();
-
-            var request = new CodeGenerationRequest
-            {
-                Description = description,
-                Language = language,
-                Framework = framework,
-                GenerateTests = task.Parameters.TryGetValue("generateTests", out var genTests) && 
-                              bool.TryParse(genTests?.ToString(), out var testVal) && testVal,
-                GenerateDocumentation = task.Parameters.TryGetValue("generateDocs", out var genDocs) && 
-                                      bool.TryParse(genDocs?.ToString(), out var docVal) && docVal,
-                Requirements = { "Clean code", "SOLID principles", "XML documentation" }
-            };
-
-            var generatedCode = await _codeGenerator.GenerateCodeAsync(request);
-            return new AgentResult
-            {
-                Success = true,
-                Message = "Code generation completed successfully",
-                Results = { ["GeneratedCode"] = generatedCode }
-            };
-        }
-
-        private async Task<AgentResult> ProcessRefactoringTaskAsync(AgentTask task)
-        {
-            var filePath = task.Parameters.GetValueOrDefault("filePath")?.ToString()
-                ?? throw new ArgumentException("filePath parameter is required");
-
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException("Source file not found", filePath);
-            }
-            
-            var codeContent = await File.ReadAllTextAsync(filePath);
-            var analysisResult = await _codeAnalyzer.AnalyzeCodeAsync(codeContent);
-            var modifications = await _codeAnalyzer.GenerateCodeModificationAsync(analysisResult);
-
-            return new AgentResult
-            {
-                Success = true,
-                Message = "Code refactoring completed successfully",
-                Results = { ["Modifications"] = modifications }
-            };
-        }
-
-        private async Task<AgentResult> ProcessTestingTaskAsync(AgentTask task)
-        {
-            var projectPath = task.Parameters.GetValueOrDefault("testProject")?.ToString()
-                ?? throw new ArgumentException("testProject parameter is required");
-
-            if (!File.Exists(projectPath))
-            {
-                throw new FileNotFoundException("Test project file not found", projectPath);
-            }
-
-            var solutionPath = Path.GetDirectoryName(projectPath)
-                ?? throw new InvalidOperationException("Invalid project path");
-
-            await _solutionManager.LoadSolutionAsync(solutionPath);
-            await _solutionManager.RunTest
+    }
+}
