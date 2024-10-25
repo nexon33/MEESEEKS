@@ -65,7 +65,7 @@ The project is structured into several key components:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/MEESEEKS.git
+git clone https://github.com/nexon33/MEESEEKS.git
 ```
 
 2. Ensure you have the following prerequisites:
