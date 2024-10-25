@@ -1,6 +1,7 @@
-﻿﻿﻿﻿﻿﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using MEESEEKS.Core;
 using MEESEEKS.Interfaces;
 using MEESEEKS.Models.Agent;
@@ -76,11 +77,14 @@ namespace MEESEEKS.Runner
                     Capabilities = new HashSet<string> { "CodeGeneration", "CodeAnalysis" }
                 };
 
+                // Create MSBuild workspace
+                using var workspace = MSBuildWorkspace.Create();
+
                 // Initialize dependencies
                 var dockerOps = new DockerOperations();
                 var gitOps = new GitOperations();
                 var codeAnalyzer = new CodeAnalyzer();
-                var codeGenerator = new CodeGenerator();
+                var codeGenerator = new CodeGenerator(workspace);
                 var solutionManager = new SolutionManager();
                 var communication = new AgentCommunication();
 
