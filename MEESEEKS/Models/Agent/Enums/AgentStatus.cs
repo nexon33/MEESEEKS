@@ -1,6 +1,4 @@
-using System;
-
-namespace MEESEEKS.Models.Agent
+namespace MEESEEKS.Models.Agent.Enums
 {
     /// <summary>
     /// Represents the current status of an agent in the MEESEEKS system.

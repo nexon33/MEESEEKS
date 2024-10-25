@@ -1,3 +1,5 @@
+using MEESEEKS.Models.CodeGeneration.Enums;
+
 namespace MEESEEKS.Models.CodeGeneration
 {
     /// <summary>
@@ -44,47 +46,5 @@ namespace MEESEEKS.Models.CodeGeneration
         /// Whether to use expression-bodied members.
         /// </summary>
         public bool UseExpressionBodiedMembers { get; set; }
-    }
-
-    /// <summary>
-    /// Represents indentation style options.
-    /// </summary>
-    public enum IndentationStyle
-    {
-        /// <summary>
-        /// Use spaces for indentation.
-        /// </summary>
-        Spaces,
-
-        /// <summary>
-        /// Use tabs for indentation.
-        /// </summary>
-        Tabs
-    }
-
-    /// <summary>
-    /// Represents naming convention options.
-    /// </summary>
-    public enum NamingConvention
-    {
-        /// <summary>
-        /// camelCase naming.
-        /// </summary>
-        CamelCase,
-
-        /// <summary>
-        /// PascalCase naming.
-        /// </summary>
-        PascalCase,
-
-        /// <summary>
-        /// snake_case naming.
-        /// </summary>
-        SnakeCase,
-
-        /// <summary>
-        /// kebab-case naming.
-        /// </summary>
-        KebabCase
     }
 }

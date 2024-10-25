@@ -1,4 +1,5 @@
 using System;
+using MEESEEKS.Models.Agent.Enums;
 
 namespace MEESEEKS.Models.Agent
 {
@@ -15,12 +16,12 @@ namespace MEESEEKS.Models.Agent
         /// <summary>
         /// Human-readable name of the agent.
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         /// <summary>
         /// Type of the agent, determining its primary responsibility.
         /// </summary>
-        public string Type { get; set; }
+        public required string Type { get; set; }
 
         /// <summary>
         /// Current status of the agent.
@@ -35,6 +36,6 @@ namespace MEESEEKS.Models.Agent
         /// <summary>
         /// Docker container ID where this agent is running.
         /// </summary>
-        public string ContainerId { get; set; }
+        public required string ContainerId { get; set; }
     }
 }

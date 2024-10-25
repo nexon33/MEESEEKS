@@ -1,6 +1,7 @@
 using System;
 using Microsoft.CodeAnalysis;
 using MEESEEKS.Models.CodeAnalysis;
+using MEESEEKS.Models.CodeAnalysis.Enums;
 
 namespace MEESEEKS.Core.Analysis
 {

@@ -1,4 +1,5 @@
 using System;
+using MEESEEKS.Models.CodeAnalysis.Enums;
 
 namespace MEESEEKS.Models.CodeAnalysis
 {
@@ -10,12 +11,12 @@ namespace MEESEEKS.Models.CodeAnalysis
         /// <summary>
         /// Gets or sets the unique identifier of the issue.
         /// </summary>
-        public string Id { get; set; } = string.Empty;
+        public required string Id { get; set; }
 
         /// <summary>
         /// Gets or sets the description of the issue.
         /// </summary>
-        public string Description { get; set; } = string.Empty;
+        public required string Description { get; set; }
 
         /// <summary>
         /// Gets or sets the severity level of the issue.
@@ -25,12 +26,12 @@ namespace MEESEEKS.Models.CodeAnalysis
         /// <summary>
         /// Gets or sets the location where the issue was found.
         /// </summary>
-        public CodeLocation Location { get; set; } = new CodeLocation();
+        public required CodeLocation Location { get; set; }
 
         /// <summary>
         /// Gets or sets the suggested fix for the issue.
         /// </summary>
-        public string SuggestedFix { get; set; } = string.Empty;
+        public required string SuggestedFix { get; set; }
 
         /// <summary>
         /// Gets or sets the timestamp when the issue was detected.

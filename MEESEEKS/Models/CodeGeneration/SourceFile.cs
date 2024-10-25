@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MEESEEKS.Models.CodeGeneration.Enums;
 
 namespace MEESEEKS.Models.CodeGeneration
 {
@@ -10,17 +11,17 @@ namespace MEESEEKS.Models.CodeGeneration
         /// <summary>
         /// Path where the file should be created.
         /// </summary>
-        public string FilePath { get; set; }
+        public required string FilePath { get; set; }
 
         /// <summary>
         /// Content of the file.
         /// </summary>
-        public string Content { get; set; }
+        public required string Content { get; set; }
 
         /// <summary>
         /// Programming language of the file.
         /// </summary>
-        public string Language { get; set; }
+        public required string Language { get; set; }
 
         /// <summary>
         /// Type of the file (e.g., Class, Interface, Test).
@@ -35,7 +36,7 @@ namespace MEESEEKS.Models.CodeGeneration
         /// <summary>
         /// Namespace of the code.
         /// </summary>
-        public string Namespace { get; set; }
+        public required string Namespace { get; set; }
 
         /// <summary>
         /// Classes defined in this file.
@@ -46,36 +47,5 @@ namespace MEESEEKS.Models.CodeGeneration
         /// Whether this file contains the main entry point.
         /// </summary>
         public bool IsEntryPoint { get; set; }
-    }
-
-    /// <summary>
-    /// Types of source files that can be generated.
-    /// </summary>
-    public enum SourceFileType
-    {
-        /// <summary>
-        /// Class implementation file.
-        /// </summary>
-        Class,
-
-        /// <summary>
-        /// Interface definition file.
-        /// </summary>
-        Interface,
-
-        /// <summary>
-        /// Unit test file.
-        /// </summary>
-        Test,
-
-        /// <summary>
-        /// Configuration file.
-        /// </summary>
-        Config,
-
-        /// <summary>
-        /// Documentation file.
-        /// </summary>
-        Documentation
     }
 }
