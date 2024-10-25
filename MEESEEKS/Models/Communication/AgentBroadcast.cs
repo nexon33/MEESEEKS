@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MEESEEKS.Models.Communication.Enums;
 
 namespace MEESEEKS.Models.Communication
 {
@@ -26,7 +27,7 @@ namespace MEESEEKS.Models.Communication
         /// <summary>
         /// Content of the broadcast message.
         /// </summary>
-        public string Content { get; set; }
+        public required string Content { get; set; }
 
         /// <summary>
         /// Target agents for the broadcast.
@@ -57,41 +58,5 @@ namespace MEESEEKS.Models.Communication
         /// List of agents that have acknowledged the broadcast.
         /// </summary>
         public List<Guid> AcknowledgedBy { get; set; } = new List<Guid>();
-    }
-
-    /// <summary>
-    /// Types of broadcast messages.
-    /// </summary>
-    public enum BroadcastType
-    {
-        /// <summary>
-        /// System-wide announcement.
-        /// </summary>
-        Announcement,
-
-        /// <summary>
-        /// Status update broadcast.
-        /// </summary>
-        StatusUpdate,
-
-        /// <summary>
-        /// Resource availability notification.
-        /// </summary>
-        ResourceNotification,
-
-        /// <summary>
-        /// Task coordination broadcast.
-        /// </summary>
-        TaskCoordination,
-
-        /// <summary>
-        /// Emergency notification.
-        /// </summary>
-        Emergency,
-
-        /// <summary>
-        /// System configuration update.
-        /// </summary>
-        ConfigUpdate
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MEESEEKS.Models.CodeAnalysis;
 
 namespace MEESEEKS.Models.CodeGeneration
 {
@@ -10,17 +11,17 @@ namespace MEESEEKS.Models.CodeGeneration
         /// <summary>
         /// Description of what code needs to be generated.
         /// </summary>
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
         /// <summary>
         /// Programming language to generate code in.
         /// </summary>
-        public string Language { get; set; }
+        public required string Language { get; set; }
 
         /// <summary>
         /// Framework or technology stack to use.
         /// </summary>
-        public string Framework { get; set; }
+        public required string Framework { get; set; }
 
         /// <summary>
         /// Specific requirements or constraints for the generated code.
@@ -30,7 +31,7 @@ namespace MEESEEKS.Models.CodeGeneration
         /// <summary>
         /// Context from existing codebase.
         /// </summary>
-        public CodeContext ExistingContext { get; set; }
+        public required CodeContext ExistingContext { get; set; }
 
         /// <summary>
         /// Whether to generate unit tests.
@@ -50,7 +51,7 @@ namespace MEESEEKS.Models.CodeGeneration
         /// <summary>
         /// Code style preferences.
         /// </summary>
-        public CodeStylePreferences StylePreferences { get; set; }
+        public required CodeStylePreferences StylePreferences { get; set; }
 
         /// <summary>
         /// Dependencies to include.

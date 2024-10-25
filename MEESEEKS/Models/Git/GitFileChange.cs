@@ -1,3 +1,5 @@
+using MEESEEKS.Models.Git.Enums;
+
 namespace MEESEEKS.Models.Git
 {
     /// <summary>
@@ -8,7 +10,7 @@ namespace MEESEEKS.Models.Git
         /// <summary>
         /// Path of the changed file.
         /// </summary>
-        public string FilePath { get; set; }
+        public required string FilePath { get; set; }
 
         /// <summary>
         /// Type of change (Added, Modified, Deleted, Renamed).
@@ -28,42 +30,11 @@ namespace MEESEEKS.Models.Git
         /// <summary>
         /// Old file path if the file was renamed.
         /// </summary>
-        public string OldFilePath { get; set; }
+        public string? OldFilePath { get; set; }
 
         /// <summary>
         /// Mode of the file (e.g., "100644" for regular file).
         /// </summary>
-        public string FileMode { get; set; }
-    }
-
-    /// <summary>
-    /// Types of changes that can occur in a Git commit.
-    /// </summary>
-    public enum GitChangeType
-    {
-        /// <summary>
-        /// File was added.
-        /// </summary>
-        Added,
-
-        /// <summary>
-        /// File was modified.
-        /// </summary>
-        Modified,
-
-        /// <summary>
-        /// File was deleted.
-        /// </summary>
-        Deleted,
-
-        /// <summary>
-        /// File was renamed.
-        /// </summary>
-        Renamed,
-
-        /// <summary>
-        /// File mode was changed.
-        /// </summary>
-        ModeChanged
+        public required string FileMode { get; set; }
     }
 }

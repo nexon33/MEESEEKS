@@ -30,11 +30,11 @@ namespace MEESEEKS.Models.Communication
         /// <summary>
         /// Queue name for dead letter messages.
         /// </summary>
-        public string DeadLetterQueueName { get; set; }
+        public string? DeadLetterQueueName { get; set; }
 
         /// <summary>
         /// Custom handling logic for dead lettered messages.
         /// </summary>
-        public string CustomHandlerType { get; set; }
+        public string? CustomHandlerType { get; set; }
     }
 }

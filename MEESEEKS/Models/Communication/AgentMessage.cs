@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MEESEEKS.Models.Communication.Enums;
 
 namespace MEESEEKS.Models.Communication
 {
@@ -36,7 +37,7 @@ namespace MEESEEKS.Models.Communication
         /// <summary>
         /// Content of the message.
         /// </summary>
-        public string Content { get; set; }
+        public required string Content { get; set; }
 
         /// <summary>
         /// Additional data associated with the message.
@@ -67,77 +68,5 @@ namespace MEESEEKS.Models.Communication
         /// ID of the message this is in response to.
         /// </summary>
         public Guid? InReplyTo { get; set; }
-    }
-
-    /// <summary>
-    /// Types of messages that can be exchanged between agents.
-    /// </summary>
-    public enum MessageType
-    {
-        /// <summary>
-        /// Task assignment message.
-        /// </summary>
-        TaskAssignment,
-
-        /// <summary>
-        /// Status update message.
-        /// </summary>
-        StatusUpdate,
-
-        /// <summary>
-        /// Request for assistance.
-        /// </summary>
-        AssistanceRequest,
-
-        /// <summary>
-        /// Response to an assistance request.
-        /// </summary>
-        AssistanceResponse,
-
-        /// <summary>
-        /// Error notification.
-        /// </summary>
-        Error,
-
-        /// <summary>
-        /// Task completion notification.
-        /// </summary>
-        TaskComplete,
-
-        /// <summary>
-        /// Resource request.
-        /// </summary>
-        ResourceRequest,
-
-        /// <summary>
-        /// System command.
-        /// </summary>
-        Command
-    }
-
-    /// <summary>
-    /// Priority levels for messages.
-    /// </summary>
-    public enum MessagePriority
-    {
-        /// <summary>
-        /// Low priority message.
-        /// </summary>
-        Low,
-
-        /// <summary>
-        /// Normal priority message.
-        /// </summary>
-        Normal,
-
-        /// <summary>
-        /// High priority message.
-        /// </summary>
-        High,
-
-        /// <summary>
-        /// Critical priority message.
-        /// </summary>
-        Critical
     }
 }

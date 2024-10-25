@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MEESEEKS.Models.Communication.Enums;
 
 namespace MEESEEKS.Models.Communication
 {
@@ -16,7 +17,7 @@ namespace MEESEEKS.Models.Communication
         /// <summary>
         /// Topic or subject of the conversation.
         /// </summary>
-        public string Topic { get; set; }
+        public required string Topic { get; set; }
 
         /// <summary>
         /// IDs of agents participating in the conversation.
@@ -52,31 +53,5 @@ namespace MEESEEKS.Models.Communication
         /// Whether the conversation is private between participants.
         /// </summary>
         public bool IsPrivate { get; set; }
-    }
-
-    /// <summary>
-    /// Status of a conversation between agents.
-    /// </summary>
-    public enum ConversationStatus
-    {
-        /// <summary>
-        /// Conversation is active.
-        /// </summary>
-        Active,
-
-        /// <summary>
-        /// Conversation is paused.
-        /// </summary>
-        Paused,
-
-        /// <summary>
-        /// Conversation has completed.
-        /// </summary>
-        Completed,
-
-        /// <summary>
-        /// Conversation was terminated.
-        /// </summary>
-        Terminated
     }
 }

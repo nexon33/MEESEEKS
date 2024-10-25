@@ -1,4 +1,5 @@
 using System;
+using MEESEEKS.Models.Communication.Enums;
 
 namespace MEESEEKS.Models.Communication
 {
@@ -25,17 +26,17 @@ namespace MEESEEKS.Models.Communication
         /// <summary>
         /// Title of the notification.
         /// </summary>
-        public string Title { get; set; }
+        public required string Title { get; set; }
 
         /// <summary>
         /// Detailed message of the notification.
         /// </summary>
-        public string Message { get; set; }
+        public required string Message { get; set; }
 
         /// <summary>
         /// Source of the notification.
         /// </summary>
-        public string Source { get; set; }
+        public required string Source { get; set; }
 
         /// <summary>
         /// Time when the notification was created.
@@ -55,63 +56,6 @@ namespace MEESEEKS.Models.Communication
         /// <summary>
         /// Action URL or command if action is required.
         /// </summary>
-        public string ActionTarget { get; set; }
-    }
-
-    /// <summary>
-    /// Types of notifications.
-    /// </summary>
-    public enum NotificationType
-    {
-        /// <summary>
-        /// Information notification.
-        /// </summary>
-        Info,
-
-        /// <summary>
-        /// Warning notification.
-        /// </summary>
-        Warning,
-
-        /// <summary>
-        /// Error notification.
-        /// </summary>
-        Error,
-
-        /// <summary>
-        /// Success notification.
-        /// </summary>
-        Success,
-
-        /// <summary>
-        /// Action required notification.
-        /// </summary>
-        ActionRequired
-    }
-
-    /// <summary>
-    /// Severity levels for notifications.
-    /// </summary>
-    public enum NotificationSeverity
-    {
-        /// <summary>
-        /// Low severity.
-        /// </summary>
-        Low,
-
-        /// <summary>
-        /// Medium severity.
-        /// </summary>
-        Medium,
-
-        /// <summary>
-        /// High severity.
-        /// </summary>
-        High,
-
-        /// <summary>
-        /// Critical severity.
-        /// </summary>
-        Critical
+        public string? ActionTarget { get; set; }
     }
 }

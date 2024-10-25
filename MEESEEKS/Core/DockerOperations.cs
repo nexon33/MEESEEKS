@@ -3,59 +3,88 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Text;
 using MEESEEKS.Interfaces;
-using MEESEEKS.Models;
+using MEESEEKS.Models.Agent;
+using MEESEEKS.Models.Docker;
 
 namespace MEESEEKS.Core
 {
+    /// <summary>
+    /// Provides functionality for managing Docker container operations.
+    /// </summary>
     public class DockerOperations : IDockerOperations
     {
         private readonly string _dockerCommand = "docker";
 
+        /// <summary>
+        /// Creates a new Docker container with the specified configuration.
+        /// </summary>
+        /// <param name="config">The configuration settings for the container.</param>
+        /// <returns>A task representing the asynchronous operation that returns the container ID as a string.</returns>
         public async Task<string> CreateContainerAsync(AgentConfiguration config)
         {
+            if (config == null) throw new ArgumentNullException(nameof(config));
+            if (config.ContainerConfig == null) throw new ArgumentException("Container configuration is required", nameof(config));
+
             var args = new StringBuilder();
             args.Append("create ");
             
+            // Set container name
+            args.Append($"--name {config.ContainerConfig.ContainerName} ");
+
             // Set resource limits
-            if (config.ResourceLimits != null)
+            if (config.ContainerConfig.Resources != null)
             {
-                args.Append($"--cpus={config.ResourceLimits.CpuLimit} ");
-                args.Append($"--memory={config.ResourceLimits.MemoryLimitMB}m ");
+                args.Append($"--cpus={config.ContainerConfig.Resources.CpuLimit} ");
+                args.Append($"--memory={config.ContainerConfig.Resources.MemoryLimit} ");
             }
 
-            // Set environment variables
-            if (config.EnvironmentVariables != null)
+            // Mount volumes
+            if (config.ContainerConfig.Volumes != null)
             {
-                foreach (var env in config.EnvironmentVariables)
+                foreach (var volume in config.ContainerConfig.Volumes)
                 {
-                    args.Append($"-e {env.Key}={env.Value} ");
+                    args.Append($"-v {volume.HostPath}:{volume.ContainerPath} ");
                 }
             }
 
-            // Mount solution directory
-            args.Append($"-v {config.WorkingDirectory}:/workspace ");
-            
             // Set working directory
-            args.Append("-w /workspace ");
-            
-            // Use .NET SDK image
-            args.Append(config.ContainerImage ?? "mcr.microsoft.com/dotnet/sdk:7.0");
+            if (!string.IsNullOrEmpty(config.ContainerConfig.WorkingDirectory))
+            {
+                args.Append($"-w {config.ContainerConfig.WorkingDirectory} ");
+            }
+
+            // Set image
+            args.Append($"{config.ContainerConfig.ImageName}:{config.ContainerConfig.ImageTag}");
 
             var result = await ExecuteDockerCommandAsync(args.ToString());
             return result.Trim();
         }
 
+        /// <summary>
+        /// Starts a Docker container with the specified container ID.
+        /// </summary>
+        /// <param name="containerId">The ID of the container to start.</param>
+        /// <returns>A task representing the asynchronous start operation.</returns>
         public async Task StartContainerAsync(string containerId)
         {
             await ExecuteDockerCommandAsync($"start {containerId}");
         }
 
+        /// <summary>
+        /// Stops a Docker container with the specified container ID.
+        /// </summary>
+        /// <param name="containerId">The ID of the container to stop.</param>
+        /// <returns>A task representing the asynchronous stop operation.</returns>
         public async Task StopContainerAsync(string containerId)
         {
             await ExecuteDockerCommandAsync($"stop {containerId}");
-            await ExecuteDockerCommandAsync($"rm {containerId}");
         }
 
+        /// <summary>
+        /// Checks if a Docker container with the specified ID is currently running.
+        /// </summary>
+        /// <param name="containerId">The ID of the container to check.</param>
+        /// <returns>A task representing the asynchronous operation that returns true if the container is running, false otherwise.</returns>
         public async Task<bool> IsContainerRunningAsync(string containerId)
         {
             try

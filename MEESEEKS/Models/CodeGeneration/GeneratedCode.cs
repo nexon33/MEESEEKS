@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using MEESEEKS.Models.Documentation;
 
 namespace MEESEEKS.Models.CodeGeneration
 {
@@ -25,7 +27,7 @@ namespace MEESEEKS.Models.CodeGeneration
         /// <summary>
         /// Documentation for the generated code.
         /// </summary>
-        public Documentation Documentation { get; set; }
+        public ApiDocumentation Documentation { get; set; }
 
         /// <summary>
         /// Dependencies required by the generated code.
@@ -55,6 +57,6 @@ namespace MEESEEKS.Models.CodeGeneration
         /// <summary>
         /// Timestamp when the code was generated.
         /// </summary>
-        public System.DateTime GeneratedAt { get; set; }
+        public DateTime GeneratedAt { get; set; }
     }
 }

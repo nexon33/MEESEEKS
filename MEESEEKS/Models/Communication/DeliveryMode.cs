@@ -1,23 +1,20 @@
+using MEESEEKS.Models.Communication.Enums;
+
 namespace MEESEEKS.Models.Communication
 {
     /// <summary>
-    /// Delivery modes for event subscriptions.
+    /// Represents delivery mode configuration.
     /// </summary>
-    public enum DeliveryMode
+    public class DeliveryModeConfig
     {
         /// <summary>
-        /// Push events to the subscriber.
+        /// The delivery mode to use.
         /// </summary>
-        Push,
+        public DeliveryMode Mode { get; set; }
 
         /// <summary>
-        /// Subscriber pulls events.
+        /// Additional configuration options specific to the delivery mode.
         /// </summary>
-        Pull,
-
-        /// <summary>
-        /// Events are streamed to the subscriber.
-        /// </summary>
-        Stream
+        public Dictionary<string, string>? Options { get; set; }
     }
 }
